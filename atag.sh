@@ -18,7 +18,7 @@ msg_n_exit()
 check_dependencies()
 {
 	[ -z "$(command -v "ffmpeg")" ] && msg_n_exit "Unable to locate ffmpeg binary"
-	[ -z "$(command -v "id3tool")" ] && msg_n_exit "Unable to locate id3tool binary"
+	[ -z "$(command -v "eyeD3")" ] && msg_n_exit "Unable to locate eyeD3 binary"
 }
 
 split_n_tag_track()
@@ -39,10 +39,10 @@ split_n_tag_track()
 	fi
 	
 	# Tag track
-	id3tool --set-title="$track_name" --set-track=$track_number "$out_file"
-	[ -n "$album_name" ] && id3tool --set-album="$album_name" "$out_file"
-	[ -n "$artist_name" ] && id3tool --set-artist="$artist_name" "$out_file"
-	[ -n "$year_data" ] && id3tool --set-year=$year_data "$out_file"
+	eyeD3 -Q --remove-all --title "$track_name" --track $track_number "$out_file"
+	[ -n "$album_name" ] && id3tool -Q --album "$album_name" "$out_file"
+	[ -n "$artist_name" ] && id3tool -Q --artist "$artist_name" "$out_file"
+	[ -n "$year_data" ] && id3tool -Q --release-year $year_data "$out_file"
 }
 
 split_audio_loop()
@@ -71,15 +71,15 @@ split_audio_loop()
 			prev_timestamp="$(echo "$prev_line" | cut -d ' ' -f 1)"
 			prev_name="$(echo "$prev_line" | cut -d ' ' -f 2-)"
 
-			echo "$prev_name: $prev_timestamp - $timestamp"
-			split_n_tag_track $line_number "$prev_name" "$prev_timestamp" "$timestamp"
+			#echo "$prev_name: $prev_timestamp - $timestamp"
+			split_n_tag_track $((line_number-1)) "$prev_name" "$prev_timestamp" "$timestamp"
 		fi
 
 		((++line_number))
 	done < "$text_file"
 
-	echo "$name: $timestamp - EOF"
-	split_n_tag_track $line_number "$name" "$timestamp"
+	#echo "$name: $timestamp - EOF"
+	split_n_tag_track $((line_number-1)) "$name" "$timestamp"
 
 	rm "$tmp_data_file"
 }
